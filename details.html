@@ -17,11 +17,10 @@
     <div class="spinner-border text-primary" role="status"></div>
   </div>
 
-  <table id="transactionDetailsTable" class="table table-bordered table-sm" style="display: none;">
+  <table id="transactionDetailsTable" class="table table-bordered table-striped table-sm" style="display: none;">
     <tbody></tbody>
   </table>
 
-  
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -48,8 +47,11 @@ $(document).ready(async function() {
     for (const [key, value] of Object.entries(details)) {
       tableBody.append(`
         <tr>
-          <th>${key.replace(/_/g, ' ').toUpperCase()}</th>
-          <td>${typeof value === 'object' ? `<pre>${JSON.stringify(value, null, 2)}</pre>` : value}</td>
+          <th class="text-end text-secondary">${key.replace(/_/g, ' ').toUpperCase()}</th>
+          <td>${typeof value === 'object' && value !== null 
+            ? formatObject(value) 
+            : value}
+          </td>
         </tr>
       `);
     }
@@ -62,6 +64,23 @@ $(document).ready(async function() {
     console.error('Error fetching transaction details:', error);
   }
 });
+
+Object.defineProperty(String.prototype, 'capitalize', {
+  value: function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+  },
+  enumerable: false
+});
+
+// Function to format object (like { key: value, key2: value2 })
+function formatObject(obj) {
+  let formatted = '<div>';
+  for (const [k, v] of Object.entries(obj)) {
+    formatted += `<div><b>${k.capitalize()}:</b> ${v}</div>`;
+  }
+  formatted += '</div>';
+  return formatted;
+}
 </script>
 
 </body>
