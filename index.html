@@ -84,8 +84,29 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 
   function formatDate(timestamp) {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    var  date = new Date(timestamp);
+
+    var hours = date.getHours();
+    var  minutes = date.getMinutes();
+    var  seconds = date.getSeconds();
+    var  ampm = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 should be 12
+
+    var  month = date.getMonth() + 1; // Months are 0-based
+    var  day = date.getDate();
+    var  year = date.getFullYear();
+
+    return (
+        (month < 10 ? '0' + month : month) + '/' +
+        (day < 10 ? '0' + day : day) + '/' +
+        year + ' ' +
+        (hours < 10 ? '0' + hours : hours) + ':' +
+        (minutes < 10 ? '0' + minutes : minutes) + ':' +
+        (seconds < 10 ? '0' + seconds : seconds) + ' ' +
+        ampm
+    );
   }
 
   function buildDesktopTable(transactions) {
@@ -114,12 +135,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       const tokenTransfer = (txn.token_transfers || []).map(transfer => {
         const amount = transfer.value / Math.pow(10, transfer.token?.decimals || 18);
         return `<div><strong>${transfer.token?.symbol || 'Unknown'}:</strong> ${amount.toFixed(6)}</div>`;
-      }).join('') || `<div>${(parseInt(txn.value, 16) / 1e18).toFixed(6)} PLS</div>`;
+      }).join('') || `<div>${(parseInt(txn.fee.value, 16) / 1e18).toFixed(6)} PLS</div>`;
 
       html += `
         <tr>
           <td><center><img src="https://voodootoken.com/hovihev/uploads/2024/11/Voodoo-Token-Logo.png" alt="${txn.to.name}" width="24" height="24" class="img-fluid rounded"></center></td>
-          <td>${txn.to.name}</td>
+          <td>VDO</td>
           <td class="text-break">${txn.hash}...</td>
           <td>${txn.method || 'Transfer'}</td>
           <td>${formatDate(txn.timestamp)}</td>
