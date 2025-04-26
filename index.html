@@ -149,7 +149,8 @@ document.addEventListener('DOMContentLoaded', async function() {
           <td class="text-break small">${txn.to?.hash || 'Contract'}...</td>
           <td>${tokenTransfer}</td>
           <td>${((parseInt(txn.gas_price, 16) * txn.gas_used) / 1e18).toFixed(6)} PLS</td>
-          <td><button class="btn btn-sm btn-primary view-transaction" data-hash="${txn.hash}">View</button></td>
+          <!-- <td><button class="btn btn-sm btn-primary view-transaction" data-hash="${txn.hash}">View</button></td> -->
+          <td><a href="details.html?hash=${txn.hash}" class="btn btn-sm btn-primary" target="_blank">View</a></td>
         </tr>
       `;
     });
@@ -178,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             <p><strong>To:</strong> <span class="text-break">${txn.to?.hash || 'Contract'}</span></p>
             <p><strong>Tokens Transfer:</strong><br> ${(txn.token_transfers || []).map(t => `<div>${t.token?.symbol || 'Unknown'}: ${(t.value / Math.pow(10, t.token?.decimals || 18)).toFixed(6)}</div>`).join('') || ((parseInt(txn.fee.value, 16) / 1e18).toFixed(6) + ' PLS')}</p>
             <p><strong>Txn Fee:</strong> ${((parseInt(txn.gas_price, 16) * txn.gas_used) / 1e18).toFixed(6)} PLS</p>
-            <button class="btn btn-primary btn-sm view-transaction w-100 mt-2" data-hash="${txn.hash}">View Details</button>
+            <a href="details.html?hash=${txn.hash}" class="btn btn-primary btn-sm w-100 mt-2" target="_blank">View Details</a>
           </div>
         </div>
       `;

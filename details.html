@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Transaction Details</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+
+<div class="container">
+  <h4 class="mb-4">Transaction Details</h4>
+  <div class="text-center mt-4">
+    <a href="index.html" class="btn btn-primary">🏠 Go to Home</a>
+  </div>
+
+  <div id="loadingSpinner" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <table id="transactionDetailsTable" class="table table-bordered table-sm" style="display: none;">
+    <tbody></tbody>
+  </table>
+
+  
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(async function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const hash = urlParams.get('hash');
+
+  if (!hash) {
+    alert('Transaction hash not provided.');
+    window.location.href = 'index.html';
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.scan.pulsechain.com/api/v2/transactions/${hash}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    const details = await response.json();
+
+    const tableBody = $('#transactionDetailsTable tbody');
+    tableBody.empty();
+
+    for (const [key, value] of Object.entries(details)) {
+      tableBody.append(`
+        <tr>
+          <th>${key.replace(/_/g, ' ').toUpperCase()}</th>
+          <td>${typeof value === 'object' ? `<pre>${JSON.stringify(value, null, 2)}</pre>` : value}</td>
+        </tr>
+      `);
+    }
+
+    $('#loadingSpinner').hide();
+    $('#transactionDetailsTable').show();
+
+  } catch (error) {
+    $('#loadingSpinner').html('<div class="text-danger">Failed to load transaction details.</div>');
+    console.error('Error fetching transaction details:', error);
+  }
+});
+</script>
+
+</body>
+</html>
