@@ -60,7 +60,7 @@
 document.addEventListener('DOMContentLoaded', async function() {
   const address = '0x1c5f8e8E84AcC71650F7a627cfA5B24B80f44f00';
   const apiUrl = `https://api.scan.pulsechain.com/api/v2/addresses/${address}/transactions?filter=to%20%7C%20from&limit=10`;
-  alert(apiUrl)
+  
 
   const desktopTableWrapper = document.getElementById('desktopTableWrapper');
   const mobileCardsWrapper = document.getElementById('mobileCardsWrapper');
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     buildDesktopTable(transactions);
-    // buildMobileCards(transactions);
+    buildMobileCards(transactions);
 
   } catch (error) {
     console.error('Error fetching transactions:', error);
