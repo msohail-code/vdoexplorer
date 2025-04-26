@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PulseChain Transactions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+</head>
+
+<style> 
+    table#txTable  {
+        font-size:14px;
+    }
+</style>
+
+<body class="p-4 bg-light">
+<div class="container">
+  <h4 class="mb-4">All Transactions</h4>
+
+  <div class="text-center mb-3">
+    <button id="reloadBtn" class="btn btn-primary">🔄 Reload</button>
+  </div>
+
+  <div id="desktopTableWrapper" class="d-none d-md-block table-responsive"></div>
+
+  <div id="mobileCardsWrapper" class="d-md-none"></div>
+
+  <!-- Transaction Modal -->
+  <div class="modal fade" id="txnModal" tabindex="-1" aria-labelledby="txnModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="txnModalLabel">Transaction Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="loadingSpinner" class="text-center mb-3" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+          </div>
+          <table id="transactionDetailsTable" class="table table-bordered table-sm">
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  const address = '0x1c5f8e8E84AcC71650F7a627cfA5B24B80f44f00';
+  const apiUrl = `https://api.scan.pulsechain.com/api/v2/addresses/${address}/transactions?filter=to%20%7C%20from&limit=10`;
+
+  const desktopTableWrapper = document.getElementById('desktopTableWrapper');
+  const mobileCardsWrapper = document.getElementById('mobileCardsWrapper');
+
+  try {
+    const response = await fetch(apiUrl, { headers: { 'Accept': 'application/json' } });
+    const data = await response.json();
+    const transactions = data.items || [];
+
+    if (transactions.length === 0) {
+      desktopTableWrapper.innerHTML = `<div class="alert alert-warning">No transactions found.</div>`;
+      return;
+    }
+
+    buildDesktopTable(transactions);
+    // buildMobileCards(transactions);
+
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    desktopTableWrapper.innerHTML = `<div class="alert alert-danger">Failed to load transactions.</div>`;
+  }
+
+  function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function buildDesktopTable(transactions) {
+    let html = `
+      <table id="txTable" class="table table-striped table-bordered align-middle w-100">
+        <thead>
+          <tr>
+            <th>Token Icon</th>
+            <th>Token Name</th>
+            <th>Txn Hash</th>
+            <th>Method</th>
+            <th>Time</th>
+            
+            
+            <th>From</th>
+            <th>To</th>
+            <th>Tokens Transfer</th>
+            <th>Txn Fee</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    transactions.forEach(txn => {
+      const tokenTransfer = (txn.token_transfers || []).map(transfer => {
+        const amount = transfer.value / Math.pow(10, transfer.token?.decimals || 18);
+        return `<div><strong>${transfer.token?.symbol || 'Unknown'}:</strong> ${amount.toFixed(6)}</div>`;
+      }).join('') || `<div>${(parseInt(txn.value, 16) / 1e18).toFixed(6)} PLS</div>`;
+
+      html += `
+        <tr>
+          <td><center><img src="https://voodootoken.com/hovihev/uploads/2024/11/Voodoo-Token-Logo.png" alt="${txn.to.name}" width="24" height="24" class="img-fluid rounded"></center></td>
+          <td>${txn.to.name}</td>
+          <td class="text-break">${txn.hash}...</td>
+          <td>${txn.method || 'Transfer'}</td>
+          <td>${formatDate(txn.timestamp)}</td>
+         
+          <td class="text-break small">${txn.from?.hash || 'N/A'}...</td>
+          <td class="text-break small">${txn.to?.hash || 'Contract'}...</td>
+          <td>${tokenTransfer}</td>
+          <td>${((parseInt(txn.gas_price, 16) * txn.gas_used) / 1e18).toFixed(6)} PLS</td>
+          <td><button class="btn btn-sm btn-primary view-transaction" data-hash="${txn.hash}">View</button></td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+
+    desktopTableWrapper.innerHTML = html;
+    $('#txTable').DataTable({
+      "pageLength": 15,
+      "lengthChange": false,
+      "order": [[2, "desc"]]
+    });
+  }
+
+  function buildMobileCards(transactions) {
+    let html = '';
+    transactions.forEach(txn => {
+      html += `
+        <div class="card mb-3 shadow-sm">
+          <div class="card-body">
+            <p><strong>Txn Hash:</strong> ${txn.hash}</p>
+            <p><strong>Method:</strong> ${txn.method || 'Transfer'}</p>
+            <p><strong>Block:</strong> ${txn.block}</p>
+            <p><strong>Age:</strong> ${txn.age || 'N/A'}</p>
+            <p><strong>From:</strong> <span class="text-break">${txn.from?.hash || 'N/A'}</span></p>
+            <p><strong>To:</strong> <span class="text-break">${txn.to?.hash || 'Contract'}</span></p>
+            <p><strong>Tokens Transfer:</strong><br> ${(txn.token_transfers || []).map(t => `<div>${t.token?.symbol || 'Unknown'}: ${(t.value / Math.pow(10, t.token?.decimals || 18)).toFixed(6)}</div>`).join('') || ((parseInt(txn.value, 16) / 1e18).toFixed(6) + ' PLS')}</p>
+            <p><strong>Txn Fee:</strong> ${((parseInt(txn.gas_price, 16) * txn.gas_used) / 1e18).toFixed(6)} PLS</p>
+            <button class="btn btn-primary btn-sm view-transaction w-100 mt-2" data-hash="${txn.hash}">View Details</button>
+          </div>
+        </div>
+      `;
+    });
+    mobileCardsWrapper.innerHTML = html;
+  }
+
+  $(document).on('click', '.view-transaction', async function() {
+    const hash = $(this).data('hash');
+    const tableBody = $('#transactionDetailsTable tbody');
+    tableBody.empty();
+    $('#loadingSpinner').show();
+
+    try {
+      const response = await fetch(`https://api.scan.pulsechain.com/api/v2/transactions/${hash}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const details = await response.json();
+
+      for (const [key, value] of Object.entries(details)) {
+        tableBody.append(`
+          <tr>
+            <th>${key.replace(/_/g, ' ').toUpperCase()}</th>
+            <td>${typeof value === 'object' ? `<pre>${JSON.stringify(value, null, 2)}</pre>` : value}</td>
+          </tr>
+        `);
+      }
+    } catch (error) {
+      tableBody.html('<tr><td colspan="2" class="text-danger">Failed to fetch transaction details.</td></tr>');
+    }
+    $('#loadingSpinner').hide();
+    new bootstrap.Modal(document.getElementById('txnModal')).show();
+  });
+
+  $('#reloadBtn').on('click', function() {
+    location.reload();
+  });
+
+});
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker registered'))
+    .catch(err => console.error('Service Worker registration failed:', err));
+}
+</script>
+
+</body>
+</html>
