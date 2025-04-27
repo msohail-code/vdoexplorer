@@ -141,12 +141,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         <tr>
           <td><center><img src="https://voodootoken.com/hovihev/uploads/2024/11/Voodoo-Token-Logo.png" alt="${txn.to.name}" width="24" height="24" class="img-fluid rounded"></center></td>
           <td>VDO</td>
-          <td class="text-break">${txn.hash}...</td>
+          <td class="text-break">${txn.hash}</td>
           <td>${txn.method || 'Transfer'}</td>
           <td>${formatDate(txn.timestamp)}</td>
          
-          <td class="text-break small">${txn.from?.hash || 'N/A'}...</td>
-          <td class="text-break small">${txn.to?.hash || 'Contract'}...</td>
+          <td class="text-break small">${txn.from?.hash || 'N/A'}</td>
+          <td class="text-break small">${txn.to?.hash || 'Contract'}</td>
           <td>${tokenTransfer}</td>
           <td>${((parseInt(txn.gas_price, 16) * txn.gas_used) / 1e18).toFixed(6)} VDO</td>
           <!-- <td><button class="btn btn-sm btn-primary view-transaction" data-hash="${txn.hash}">View</button></td> -->
