@@ -226,6 +226,10 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log('Service Worker registered'))
     .catch(err => console.error('Service Worker registration failed:', err));
 }
+
+setInterval(function() {
+  location.reload();
+}, 5000);
 </script>
 
 </body>
