@@ -26,6 +26,39 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
 $(document).ready(async function() {
+
+
+    function formatDate(timestamp) {
+    var  date = new Date(timestamp);
+
+    var hours = date.getHours();
+    var  minutes = date.getMinutes();
+    var  seconds = date.getSeconds();
+    var  ampm = hours >= 12 ? 'PM' : 'AM';
+
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 should be 12
+
+    var  month = date.getMonth() + 1; // Months are 0-based
+    var  day = date.getDate();
+    var  year = date.getFullYear();
+
+    return (
+        (month < 10 ? '0' + month : month) + '/' +
+        (day < 10 ? '0' + day : day) + '/' +
+        year + ' ' +
+        (hours < 10 ? '0' + hours : hours) + ':' +
+        (minutes < 10 ? '0' + minutes : minutes) + ':' +
+        (seconds < 10 ? '0' + seconds : seconds) + ' ' +
+        ampm
+    );
+  }
+
+  function formatCurrency(value) {
+        // Convert value from string to number, divide by 1e18 (assuming it's in Wei), and format
+        return (parseFloat(value) / 1e18).toLocaleString(undefined, {minimumFractionDigits: 6}) + ' VDO';
+    }
+
   const urlParams = new URLSearchParams(window.location.search);
   const hash = urlParams.get('hash');
 
@@ -44,12 +77,50 @@ $(document).ready(async function() {
     const tableBody = $('#transactionDetailsTable tbody');
     tableBody.empty();
 
-    for (const [key, value] of Object.entries(details)) {
+    const fieldsToSkip = [
+      'max_fee_per_gas', 
+      'priority_fee', 
+      'base_fee_per_gasukbnm',
+      'created_contract',
+      'position',
+      'nonce',
+      'has_error_in_internal_txs',
+      'actions',
+      'decoded_input',
+      'token_transfers_overflow',
+      'raw_input',
+      'value',
+      'max_priority_fee_per_gas',
+      'revert_reason',
+      'confirmation_duration',
+      'tx_tag',
+      
+    ];
+
+    
+
+    for (var [key, value] of Object.entries(details)) {
+        if(key==="timestamp"){
+           value =  formatDate(value);
+        }
+
+        
+        if (fieldsToSkip.includes(key)) {
+        continue;
+        }
+
+        if (  key.includes('fee') && typeof value !== 'object') {
+            value = (parseFloat(value) / 1e18).toFixed(6) + ' PLS';
+        // Then use formattedFee wherever you want to show
+        }
+        
+
       tableBody.append(`
         <tr>
+            
           <th class="text-end text-secondary">${key.replace(/_/g, ' ').toUpperCase()}</th>
           <td>${typeof value === 'object' && value !== null 
-            ? formatObject(value) 
+            ? formatObject(value,key) 
             : value}
           </td>
         </tr>
@@ -72,11 +143,22 @@ Object.defineProperty(String.prototype, 'capitalize', {
   enumerable: false
 });
 
+
+
 // Function to format object (like { key: value, key2: value2 })
-function formatObject(obj) {
+function formatObject(obj,key) {
+   
   let formatted = '<div>';
-  for (const [k, v] of Object.entries(obj)) {
+  for (var [k, v] of Object.entries(obj)) {
+    if(key.includes('fee') && k.capitalize()==="Value"){
+        v = (parseFloat(v) / 1e18).toFixed(6) + ' PLS';
+    }
     formatted += `<div><b>${k.capitalize()}:</b> ${v}</div>`;
+    if(key == 'to' || key=="from"){
+       
+        break;
+        
+    }
   }
   formatted += '</div>';
   return formatted;
