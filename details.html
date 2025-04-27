@@ -8,6 +8,54 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d6efd">
   <link rel="icon" href="https://voodootoken.com/hovihev/uploads/2024/11/Voodoo-Token-Logo.png">
+
+    <link rel="stylesheet" href="css/details.css">
+  
+  <style>
+    /* Desktop: Table layout */
+    .table-container {
+      display: block;
+    }
+
+    /* Mobile: Convert to div layout */
+    @media (max-width: 768px) {
+      .table-container {
+        display: none;
+      }
+      .mobile-container {
+        display: block;
+      }
+
+      /* Styling the mobile item to have a nice border and spacing */
+      .mobile-item {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
+
+      .mobile-item .mobile-label {
+        font-weight: bold;
+        width: 100%;
+        margin-bottom: 5px;
+        color: #0d6efd;
+      }
+
+      .mobile-item .mobile-value {
+        width: 100%;
+        word-wrap: break-word; /* Ensure long text wraps within the box */
+        color: #555;
+      }
+
+      /* Add nice spacing between labels and values */
+      .mobile-item .mobile-value {
+        margin-bottom: 5px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-light p-4">
 
@@ -21,47 +69,58 @@
     <div class="spinner-border text-primary" role="status"></div>
   </div>
 
-  <table id="transactionDetailsTable" class="table table-bordered table-striped table-sm" style="display: none;">
-    <tbody></tbody>
-  </table>
+  <!-- Desktop Table -->
+  <div class="table-container">
+    <table id="transactionDetailsTable" class="table table-bordered table-striped table-sm" style="display: none;">
+      <tbody></tbody>
+    </table>
+  </div>
 
+  <!-- Mobile View -->
+  <div class="mobile-container" style="display: none;">
+    <div id="transactionDetailsMobile"></div>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
 $(document).ready(async function() {
 
+    function checkScreenSize() {
+        if (window.innerWidth <= 768) {  // Check for mobile (or tablet)
+            $('#transactionDetailsTable').hide();  // Hide the first
+            $('.mobile-container').show(); // Show the second
+        } else {
+            $('#transactionDetailsTable').show(); // Show the first
+            $('.mobile-container').hide(); // Hide the second
+        }
+    }
 
-    function formatDate(timestamp) {
-    var  date = new Date(timestamp);
-
+  function formatDate(timestamp) {
+    var date = new Date(timestamp);
     var hours = date.getHours();
-    var  minutes = date.getMinutes();
-    var  seconds = date.getSeconds();
-    var  ampm = hours >= 12 ? 'PM' : 'AM';
-
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
-    hours = hours ? hours : 12; // 0 should be 12
-
-    var  month = date.getMonth() + 1; // Months are 0-based
-    var  day = date.getDate();
-    var  year = date.getFullYear();
-
+    hours = hours ? hours : 12;
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    var year = date.getFullYear();
     return (
-        (month < 10 ? '0' + month : month) + '/' +
-        (day < 10 ? '0' + day : day) + '/' +
-        year + ' ' +
-        (hours < 10 ? '0' + hours : hours) + ':' +
-        (minutes < 10 ? '0' + minutes : minutes) + ':' +
-        (seconds < 10 ? '0' + seconds : seconds) + ' ' +
-        ampm
+      (month < 10 ? '0' + month : month) + '/' +
+      (day < 10 ? '0' + day : day) + '/' +
+      year + ' ' +
+      (hours < 10 ? '0' + hours : hours) + ':' +
+      (minutes < 10 ? '0' + minutes : minutes) + ':' +
+      (seconds < 10 ? '0' + seconds : seconds) + ' ' +
+      ampm
     );
   }
 
   function formatCurrency(value) {
-        // Convert value from string to number, divide by 1e18 (assuming it's in Wei), and format
-        return (parseFloat(value) / 1e18).toLocaleString(undefined, {minimumFractionDigits: 6}) + ' VDO';
-    }
+    return (parseFloat(value) / 1e18).toLocaleString(undefined, {minimumFractionDigits: 6}) + ' VDO';
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const hash = urlParams.get('hash');
@@ -79,7 +138,9 @@ $(document).ready(async function() {
     const details = await response.json();
 
     const tableBody = $('#transactionDetailsTable tbody');
+    const mobileContainer = $('#transactionDetailsMobile');
     tableBody.empty();
+    mobileContainer.empty();
 
     const fieldsToSkip = [
       'max_fee_per_gas', 
@@ -98,46 +159,51 @@ $(document).ready(async function() {
       'revert_reason',
       'confirmation_duration',
       'tx_tag',
-      
     ];
 
-    
-
     for (var [key, value] of Object.entries(details)) {
-        if(key==="timestamp"){
-           value =  formatDate(value);
-        }
+      if(key === "timestamp"){
+        value = formatDate(value);
+      }
 
-        
-        if (fieldsToSkip.includes(key)) {
+      if (fieldsToSkip.includes(key)) {
         continue;
-        }
+      }
 
-        if (  key.includes('fee') && typeof value !== 'object') {
-            value = (parseFloat(value) / 1e18).toFixed(6) + ' VDO';
-        // Then use formattedFee wherever you want to show
-        }
-        
+      if (key.includes('fee') && typeof value !== 'object') {
+        value = (parseFloat(value) / 1e18).toFixed(6) + ' VDO';
+      }
 
+      // Append to desktop table
       tableBody.append(`
         <tr>
-            
           <th class="text-end text-secondary">${key.replace(/_/g, ' ').toUpperCase()}</th>
-          <td>${typeof value === 'object' && value !== null 
-            ? formatObject(value,key) 
-            : value}
-          </td>
+          <td>${typeof value === 'object' && value !== null ? formatObject(value, key) : value}</td>
         </tr>
+      `);
+
+      // Append to mobile layout
+      mobileContainer.append(`
+        <div class="mobile-item">
+          <div class="mobile-label">${key.replace(/_/g, ' ').toUpperCase()}:</div>
+          <div class="mobile-value">${typeof value === 'object' && value !== null ? formatObject(value, key) : value}</div>
+        </div>
       `);
     }
 
     $('#loadingSpinner').hide();
-    $('#transactionDetailsTable').show();
+    
+    checkScreenSize();
 
   } catch (error) {
     $('#loadingSpinner').html('<div class="text-danger">Failed to load transaction details.</div>');
     console.error('Error fetching transaction details:', error);
   }
+
+
+  $(window).resize(function() {
+        checkScreenSize();
+    });
 });
 
 Object.defineProperty(String.prototype, 'capitalize', {
@@ -147,21 +213,16 @@ Object.defineProperty(String.prototype, 'capitalize', {
   enumerable: false
 });
 
-
-
 // Function to format object (like { key: value, key2: value2 })
-function formatObject(obj,key) {
-   
+function formatObject(obj, key) {
   let formatted = '<div>';
   for (var [k, v] of Object.entries(obj)) {
-    if(key.includes('fee') && k.capitalize()==="Value"){
+    if(key.includes('fee') && k.capitalize() === "Value") {
         v = (parseFloat(v) / 1e18).toFixed(6) + ' VDO';
     }
     formatted += `<div><b>${k.capitalize()}:</b> ${v}</div>`;
-    if(key == 'to' || key=="from"){
-       
+    if(key == 'to' || key == "from") {
         break;
-        
     }
   }
   formatted += '</div>';
