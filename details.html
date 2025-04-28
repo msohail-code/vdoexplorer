@@ -168,6 +168,7 @@ $(document).ready(async function() {
       'revert_reason',
       'confirmation_duration',
       'tx_tag',
+      'token_transfers'
     ];
 
     for (var [key, value] of Object.entries(details)) {
@@ -182,7 +183,7 @@ $(document).ready(async function() {
       }
 
       if (key.includes('fee') && typeof value !== 'object') {
-        value = (parseFloat(value) / 1e18).toFixed(6) + ' VDO';
+        value = (parseFloat(value) / 1e18).toFixed(6) + ' PLS';
       }
 
       // Append to desktop table
@@ -203,6 +204,10 @@ $(document).ready(async function() {
     }
 
     $('#loadingSpinner').hide();
+
+    $("#to_hash").text(details.token_transfers[0].to.hash);
+    $("#from_hash").text(details.token_transfers[0].from.hash);
+
     
     checkScreenSize();
 
@@ -228,16 +233,27 @@ String.prototype.capitalize = function() {
 // Function to format object (and nested objects)
 function formatObject(obj, key) {
   let formatted = '<div>';
-  for (const [k, v] of Object.entries(obj)) {
+   
+  for (var [k, v] of Object.entries(obj)) {
+    var data_id;
+    if (key === 'from') {
+      data_id = "id='from_hash'";
+      v=''
+    }else if(key === 'to') {
+        data_id = "id='to_hash'";
+        v=''
+    }
+
+
     if (typeof v === 'object' && v !== null) {
       // If the value itself is an object, recurse into it
       formatted += `<div><b>${k.capitalize()}:</b> ${formatObject(v, k)}</div>`;
     } else {
       let valueToDisplay = v;
       if (key.includes('fee') && k.capitalize() === "Value") {
-        valueToDisplay = (parseFloat(v) / 1e18).toFixed(6) + ' VDO';
+        valueToDisplay = (parseFloat(v) / 1e18).toFixed(6) + ' PLS';
       }
-      formatted += `<div><b>${k.capitalize()}:</b> ${valueToDisplay}</div>`;
+      formatted += `<div ${data_id}> ${valueToDisplay.capitalize()}</div>`;
     }
 
     // Stop early if key is "to" or "from"
