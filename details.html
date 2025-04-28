@@ -175,6 +175,8 @@ $(document).ready(async function() {
         value = formatDate(value);
       }
 
+     
+
       if (fieldsToSkip.includes(key)) {
         continue;
       }
@@ -215,28 +217,39 @@ $(document).ready(async function() {
     });
 });
 
-Object.defineProperty(String.prototype, 'capitalize', {
-  value: function() {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-  },
-  enumerable: false
-});
 
-// Function to format object (like { key: value, key2: value2 })
+
+
+// Function to capitalize the first letter
+String.prototype.capitalize = function() {
+  return this.charAt(0).toUpperCase() + this.slice(1);
+};
+
+// Function to format object (and nested objects)
 function formatObject(obj, key) {
   let formatted = '<div>';
-  for (var [k, v] of Object.entries(obj)) {
-    if(key.includes('fee') && k.capitalize() === "Value") {
-        v = (parseFloat(v) / 1e18).toFixed(6) + ' VDO';
+  for (const [k, v] of Object.entries(obj)) {
+    if (typeof v === 'object' && v !== null) {
+      // If the value itself is an object, recurse into it
+      formatted += `<div><b>${k.capitalize()}:</b> ${formatObject(v, k)}</div>`;
+    } else {
+      let valueToDisplay = v;
+      if (key.includes('fee') && k.capitalize() === "Value") {
+        valueToDisplay = (parseFloat(v) / 1e18).toFixed(6) + ' VDO';
+      }
+      formatted += `<div><b>${k.capitalize()}:</b> ${valueToDisplay}</div>`;
     }
-    formatted += `<div><b>${k.capitalize()}:</b> ${v}</div>`;
-    if(key == 'to' || key == "from") {
-        break;
+
+    // Stop early if key is "to" or "from"
+    if (key === 'to' || key === 'from') {
+      break;
     }
   }
   formatted += '</div>';
   return formatted;
 }
+
+
 </script>
 
 </body>
