@@ -76,7 +76,7 @@
     </table>
 
     <div class="text-center mt-4">
-        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗  www.voodootoken.com</a>
+        <a href="https://www.voodootoken.com" class="btn btn-primary">  www.voodootoken.com</a>
       </div>
 
   </div>
@@ -85,7 +85,7 @@
   <div class="mobile-container" style="display: none;">
     <div id="transactionDetailsMobile"></div>
     <div class="text-center mt-4">
-        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗 www.voodootoken.com</a>
+        <a href="https://www.voodootoken.com" class="btn btn-primary"> www.voodootoken.com</a>
       </div>
 
   </div>
@@ -167,8 +167,7 @@ $(document).ready(async function() {
       'max_priority_fee_per_gas',
       'revert_reason',
       'confirmation_duration',
-      'tx_tag',
-      'token_transfers'
+      'tx_tag'
     ];
 
     for (var [key, value] of Object.entries(details)) {
@@ -183,6 +182,12 @@ $(document).ready(async function() {
       if(key === "fee"){
         key = "transaction Fee";
       }
+
+      if(key === 'token_transfers'){
+        // value = details.token_transfers[0].total.value;
+        value = (parseFloat(details.token_transfers[0].total.value) / 1e18).toFixed(6) + ' PLS';
+      }
+      
 
      
 
