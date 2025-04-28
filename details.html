@@ -76,7 +76,7 @@
     </table>
 
     <div class="text-center mt-4">
-        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗 Vist VoodooToken.com</a>
+        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗  www.voodootoken.com</a>
       </div>
 
   </div>
@@ -85,7 +85,7 @@
   <div class="mobile-container" style="display: none;">
     <div id="transactionDetailsMobile"></div>
     <div class="text-center mt-4">
-        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗 Vist VoodooToken.com</a>
+        <a href="https://www.voodootoken.com" class="btn btn-primary">🔗 www.voodootoken.com</a>
       </div>
 
   </div>
@@ -176,6 +176,14 @@ $(document).ready(async function() {
         value = formatDate(value);
       }
 
+      if(key === "status"){
+        value = "Success";
+      }
+
+      if(key === "fee"){
+        key = "transaction Fee";
+      }
+
      
 
       if (fieldsToSkip.includes(key)) {
@@ -183,6 +191,12 @@ $(document).ready(async function() {
       }
 
       if (key.includes('fee') && typeof value !== 'object') {
+        value = (parseFloat(value) / 1e18).toFixed(6) + ' PLS';
+      }
+
+      
+
+      if (key.includes('gas_price') && typeof value !== 'object') {
         value = (parseFloat(value) / 1e18).toFixed(6) + ' PLS';
       }
 
@@ -253,6 +267,13 @@ function formatObject(obj, key) {
       if (key.includes('fee') && k.capitalize() === "Value") {
         valueToDisplay = (parseFloat(v) / 1e18).toFixed(6) + ' PLS';
       }
+
+      if(valueToDisplay.capitalize() ==='Actual'){
+        continue;
+      }
+
+     
+    
       formatted += `<div ${data_id}> ${valueToDisplay.capitalize()}</div>`;
     }
 
