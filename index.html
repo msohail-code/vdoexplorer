@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   async function loadTransactions() {
     try {
       const latestBlock = await provider.getBlockNumber();
-      const fromBlock = latestBlock - 50000; // scanning last 5000 blocks
+      const fromBlock = latestBlock - 10000; // scanning last 5000 blocks
       
       const events = await contract.queryFilter("Transfer", fromBlock, latestBlock);
       const transactions = events.slice(-200).reverse(); // get latest 200 transfers only
